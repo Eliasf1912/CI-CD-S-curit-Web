@@ -1,3 +1,5 @@
+<img width="1061" height="855" alt="Screenshot 2026-04-15 at 11 20 20" src="https://github.com/user-attachments/assets/03bbaf87-d4f2-4216-9ca2-609d617150fa" />
+<img width="1061" height="855" alt="Screenshot 2026-04-15 at 11 20 20" src="https://github.com/user-attachments/assets/58f15054-a5b6-42cc-b04b-27d44a34a2cc" />
 GROUPE : 
 
 VICTOIRE Lytween
@@ -138,7 +140,7 @@ Lab: File path traversal, validation of file extension with null byte bypass
 
 Je vais sur le site du lab, je clique sur un des produits et je vais dans burpsuite. J’intercepte la page produit, je transfère et maintenant j’ai le lien de l’image. Je la selectionne et vais dans “repeater”. J’appuie sur “Send” quand même pour verifier le comportement. Après je change la value de “filename” avec un path tranversal “../../../etc/passwd” et comme il fallait un nullbyte, je l’ai testé un peu partout. Et la réponse 200 est apparue avec “../../../etc/passwd%00.png”. 
 
-![Screenshot 2026-04-15 at 11.20.20.png](attachment:3d82dba4-20a6-400e-9bc4-5741c84db4c6:Screenshot_2026-04-15_at_11.20.20.png)
+<img width="1061" height="855" alt="Screenshot 2026-04-15 at 11 20 20" src="https://github.com/user-attachments/assets/b1d70e6f-e9da-4386-b87f-477c5033af6f" />
 
 Pour remedier à ce projet, on pourrait déja nettoyer les entrées pour eviter qu’on puisse mettre des paths traversal. On peut aussi utiliser une whitelist pour les fichiers acceptés/acceptables et une whitelist de chemins explicites pour eviter qu’on puisse aller trop loin avec un path traversal. 
 
@@ -148,9 +150,8 @@ challenge 2 :
 
 root me : PHP - Filters
 
-![Screenshot 2026-04-17 at 16.55.09.png](attachment:8ad8213c-b55f-480b-a3fe-e04ffc030cd1:Screenshot_2026-04-17_at_16.55.09.png)
-
-![Screenshot 2026-04-17 at 16.58.52.png](attachment:5b18baf7-595d-4b67-a72a-20e4b412c285:Screenshot_2026-04-17_at_16.58.52.png)
+<img width="1297" height="891" alt="Screenshot 2026-04-17 at 16 55 09" src="https://github.com/user-attachments/assets/f3b6599b-39db-4ea3-ab89-12d4164fcf62" />
+<img width="1297" height="891" alt="Screenshot 2026-04-17 at 16 58 52" src="https://github.com/user-attachments/assets/2f349c01-305d-416a-869a-bf7ad66c415a" />
 
 - je clique sur la page home et la page login pour vérifier les comportements
 - j’utilise un path transversal “../../” avant le “login.php” de l’url et j’ai 3 warnings
@@ -167,7 +168,8 @@ source : https://medium.com/@Aptive/local-file-inclusion-lfi-web-application-pen
 
 challenge 3 : root me CSRF - contournement de jeton
 
-![Screenshot 2026-04-19 at 00.32.39.png](attachment:2805adc2-ae4e-473d-b5af-bccf2eb71c00:Screenshot_2026-04-19_at_00.32.39.png)
+<img width="661" height="581" alt="Screenshot 2026-04-19 at 00 32 39" src="https://github.com/user-attachments/assets/4048ac47-a761-49d7-8441-a1939e43f465" />
+
 ```
 <form name="csrf" action="http://challenge01.root-me.org/web-client/ch23/?action=profile" method="post" enctype="multipart/form-data">
 <input type="hidden" name="username" value="sunshine" />
@@ -184,8 +186,7 @@ document.getElementById("token").value = token;
 document.csrf.submit();
 </script>
 ```
-
-![Screenshot 2026-04-19 at 00.27.09.png](attachment:43667bf5-67f8-408e-aa3a-3e704b138347:Screenshot_2026-04-19_at_00.27.09.png)
+<img width="667" height="291" alt="Screenshot 2026-04-19 at 00 27 09" src="https://github.com/user-attachments/assets/5b95fe3c-368a-46f0-8d2b-2023305f3166" />
 
 - je fais un compte et je dois attende que l’admin valide mon compte
 - après avoir checker toutes les pages, urls et les resultats sur burpsuite, je vois que le formulaire de contact comme solution
@@ -203,12 +204,9 @@ https://www.youtube.com/watch?v=MI7IPZM2yac
 https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html
 
 challenge 4 : Lab: CSRF where token is not tied to user session
-
-![Screenshot 2026-04-19 at 14.29.13.png](attachment:b7ebe165-5b91-4e60-9b44-a941f3a1df61:Screenshot_2026-04-19_at_14.29.13.png)
-
-![Screenshot 2026-04-19 at 13.53.10.png](attachment:e5fa817c-9f1c-489b-a26c-9312b7b0c79f:Screenshot_2026-04-19_at_13.53.10.png)
-
-![Screenshot 2026-04-19 at 13.55.45.png](attachment:50ff0faf-1625-4bb4-b104-df38d5b3a283:Screenshot_2026-04-19_at_13.55.45.png)
+<img width="1286" height="581" alt="Screenshot 2026-04-19 at 14 29 13" src="https://github.com/user-attachments/assets/c09edf25-affc-4c65-9b14-6d65df0697f6" /> 
+<img width="1286" height="581" alt="Screenshot 2026-04-19 at 13 53 10" src="https://github.com/user-attachments/assets/edb9deed-d73a-4628-9050-4bd0e0c7ee73" />
+<img width="1286" height="581" alt="Screenshot 2026-04-19 at 13 55 45" src="https://github.com/user-attachments/assets/738855dc-0f4a-422a-b617-7094990cef99" />
 
 - je me connecte avec les identifiants de peter et je vais sur la page pour changer d’email
 - je mets une autre adresse mail, je vais sur burpsuite pour intercepter la réponse
@@ -232,16 +230,11 @@ recomandations : déjà un token csrf unique à l’utilisateur et par session, 
 https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html 
 
 challenge 5 : Lab: CSRF where Referer validation depends on header being present
-
-![Screenshot 2026-04-19 at 16.18.14.png](attachment:707b13f3-5c33-4a26-a900-cd83a97f441c:Screenshot_2026-04-19_at_16.18.14.png)
-
-![Screenshot 2026-04-19 at 16.19.40.png](attachment:c8971e18-8556-4756-99b8-1f9891a6f730:Screenshot_2026-04-19_at_16.19.40.png)
-
-![Screenshot 2026-04-19 at 16.23.51.png](attachment:455823c0-60cd-478c-b8a5-4a0789762496:Screenshot_2026-04-19_at_16.23.51.png)
-
-![Screenshot 2026-04-19 at 16.26.56.png](attachment:0220439d-d018-49cd-bc03-25954da5768c:Screenshot_2026-04-19_at_16.26.56.png)
-
-![Screenshot 2026-04-19 at 16.27.59.png](attachment:422c7b1f-caa8-40d4-ac4c-d091b976a6a4:Screenshot_2026-04-19_at_16.27.59.png)
+<img width="1354" height="581" alt="Screenshot 2026-04-19 at 16 18 14" src="https://github.com/user-attachments/assets/5938db80-1c34-4c4b-b272-bfee4fe985d1" />
+<img width="1354" height="581" alt="Screenshot 2026-04-19 at 16 19 40" src="https://github.com/user-attachments/assets/e6db87aa-c98c-4eeb-9ae1-09a09700362c" />
+<img width="1354" height="581" alt="Screenshot 2026-04-19 at 16 23 51" src="https://github.com/user-attachments/assets/5de48d23-5cdb-43e3-8bf2-2535220371b1" />
+<img width="1354" height="700" alt="Screenshot 2026-04-19 at 16 26 56" src="https://github.com/user-attachments/assets/9f9ed09b-b5eb-41b4-a769-c271fb6e745e" />
+<img width="1354" height="700" alt="Screenshot 2026-04-19 at 16 27 59" src="https://github.com/user-attachments/assets/e36b91a8-e66e-4611-a5c5-d380f66176d1" />
 
 - je regarde comment fonctionne le referer dans le header grace à la page de changement d’email
 - je l’ai supprimé et le comportement est le même donc la faille est là
