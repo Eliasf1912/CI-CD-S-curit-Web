@@ -254,3 +254,7 @@ recommandation : eviter d’avoir uniquement le referrer comme sécurité comme 
 source : https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html 
 
 https://owasp.org/www-community/attacks/csrf
+
+[https://portswigger.net/web-security/server-side-template-injection/exploiting/lab-server-side-template-injection-in-an-unknown-language-with-a-documented-exploit](SSTI)
+
+
