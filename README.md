@@ -129,3 +129,136 @@ https://github.com/Eliasf1912/CI-CD-S-curit-Web
         with : 
             sarif_file: 'results.sarif'
 ```
+
+CHALLENGES
+
+Challenge 1 : 
+
+Lab: File path traversal, validation of file extension with null byte bypass
+
+Je vais sur le site du lab, je clique sur un des produits et je vais dans burpsuite. J’intercepte la page produit, je transfère et maintenant j’ai le lien de l’image. Je la selectionne et vais dans “repeater”. J’appuie sur “Send” quand même pour verifier le comportement. Après je change la value de “filename” avec un path tranversal “../../../etc/passwd” et comme il fallait un nullbyte, je l’ai testé un peu partout. Et la réponse 200 est apparue avec “../../../etc/passwd%00.png”. 
+
+![Screenshot 2026-04-15 at 11.20.20.png](attachment:3d82dba4-20a6-400e-9bc4-5741c84db4c6:Screenshot_2026-04-15_at_11.20.20.png)
+
+Pour remedier à ce projet, on pourrait déja nettoyer les entrées pour eviter qu’on puisse mettre des paths traversal. On peut aussi utiliser une whitelist pour les fichiers acceptés/acceptables et une whitelist de chemins explicites pour eviter qu’on puisse aller trop loin avec un path traversal. 
+
+source : https://owasp.org/www-community/attacks/Path_Traversal
+
+challenge 2 :
+
+root me : PHP - Filters
+
+![Screenshot 2026-04-17 at 16.55.09.png](attachment:8ad8213c-b55f-480b-a3fe-e04ffc030cd1:Screenshot_2026-04-17_at_16.55.09.png)
+
+![Screenshot 2026-04-17 at 16.58.52.png](attachment:5b18baf7-595d-4b67-a72a-20e4b412c285:Screenshot_2026-04-17_at_16.58.52.png)
+
+- je clique sur la page home et la page login pour vérifier les comportements
+- j’utilise un path transversal “../../” avant le “login.php” de l’url et j’ai 3 warnings
+- en gros on comprend qu’il y a un parametre include() (inc) dans l’adresse qui m’empeche de d’aller plus loin dans le repertoire à l’aide d’un path transversal et qui renvoie le html qu’on voit sur la page directement
+- on met un filtre sur le ‘inc’ qui va encoder le resultat de la page en base64 sur “login.php” “?inc=php://filter/convert.base64-encode/resource=login.php” cf. image 1 > trouvé sur le lien en source
+- sur burpsuite dans le repeater et sur la page, il y a un resultat en base64. Sur la droite de l’image 1, on voit le texte selectionné décodé et il y a “config.php” dans le include() du coup. + le mot de passe est dans une variable donc toujours pas visible
+- je remets le même lien mais à la place de “login.php” je mets “config.php”
+- pareil, je vérfie la partie “decoded code” à drotie sur burpsuite et le mot de passe est visible
+- je copie le mot de passe et je le mets sur la page du défi pour validé le défi
+
+recommandation : déjà eviter les “?inc=” qui peuvent mener à des LFI comme ici vu que le user peut manipuler le chemin et une whitelist stricte avec les liens/chemins autorisés. nettoyer les chemins pour qu’on puisse empêcher les requetes dans l’url.
+
+source : https://medium.com/@Aptive/local-file-inclusion-lfi-web-application-penetration-testing-cc9dc8dd3601 (php wrappers) https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/07-Input_Validation_Testing/11.1-Testing_for_File_Inclusion https://www.pivotpointsecurity.com/file-inclusion-vulnerabilities/
+
+challenge 3 : root me CSRF - contournement de jeton
+
+![Screenshot 2026-04-19 at 00.32.39.png](attachment:2805adc2-ae4e-473d-b5af-bccf2eb71c00:Screenshot_2026-04-19_at_00.32.39.png)
+```
+<form name="csrf" action="http://challenge01.root-me.org/web-client/ch23/?action=profile" method="post" enctype="multipart/form-data">
+<input type="hidden" name="username" value="sunshine" />
+<input type="hidden" name="status" value="on" />
+<input type="hidden" id="token" name="token" value="" />
+</form>
+
+<script>
+var xhr = new XMLHttpRequest();
+xhr.open("GET", "http://challenge01.root-me.org/web-client/ch23/?action=profile", false);
+xhr.send(null);
+var token = xhr.responseText.match(/name="token" value="(.+?)"/)[1];
+document.getElementById("token").value = token;
+document.csrf.submit();
+</script>
+```
+
+![Screenshot 2026-04-19 at 00.27.09.png](attachment:43667bf5-67f8-408e-aa3a-3e704b138347:Screenshot_2026-04-19_at_00.27.09.png)
+
+- je fais un compte et je dois attende que l’admin valide mon compte
+- après avoir checker toutes les pages, urls et les resultats sur burpsuite, je vois que le formulaire de contact comme solution
+- j’envoie du code dans le corps du formulaire de contact au robot_admin pour qu’il le traite et qui est exécuté dans son navigateur avec sa session
+- comme le script a une requête xhr get, le script est exécuté avec le cookie du robot admin et le serveur renvoie la page profile avec le token csrf extrait de la reponse
+- je rafraichis et je vais sur private et il y a le mot de passe pour valider le défi
+
+recommandations : token csrf unique et généré coté serveur pour éviter qu’on puisse le recuperer avec un xss, une reconnexion obligatoire pour les actions admins et/ou MFA 
+
+source : https://hacktricks.wiki/en/pentesting-web/csrf-cross-site-request-forgery.html
+
+https://portswigger.net/web-security/cross-site-scripting/exploiting/lab-perform-csrf 
+
+https://www.youtube.com/watch?v=MI7IPZM2yac  
+https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html
+
+challenge 4 : Lab: CSRF where token is not tied to user session
+
+![Screenshot 2026-04-19 at 14.29.13.png](attachment:b7ebe165-5b91-4e60-9b44-a941f3a1df61:Screenshot_2026-04-19_at_14.29.13.png)
+
+![Screenshot 2026-04-19 at 13.53.10.png](attachment:e5fa817c-9f1c-489b-a26c-9312b7b0c79f:Screenshot_2026-04-19_at_13.53.10.png)
+
+![Screenshot 2026-04-19 at 13.55.45.png](attachment:50ff0faf-1625-4bb4-b104-df38d5b3a283:Screenshot_2026-04-19_at_13.55.45.png)
+
+- je me connecte avec les identifiants de peter et je vais sur la page pour changer d’email
+- je mets une autre adresse mail, je vais sur burpsuite pour intercepter la réponse
+- je récupère le csrf (cf image 1) et je drop la requete pour pas utiliser le csrf sinon je dois recommencer
+- je vais sur la page “exploit server” et je mets mon payload “
+```
+<form method="POST" action="https://0ae2000103c3066b80378009008600de.web-security-academy.net/my-account/change-email">
+<input type="hidden" name="email" [value="bang@bang.com](mailto:value=%22bang@bang.com)" />
+<input type="hidden" name="csrf" value="vlGyBkWNxJGALwmKnFQnFYZRZO0wDJen" />
+</form>
+<script>
+document.forms[0].submit();
+</script>
+```
+“dedans on retrouve l’url que je vise, la nouvelle adresse mail et le csrf pas utilisé que j’ai récupéré sur burpsuite.
+
+- apres j’envoie avec “deliver” et le lab est validé
+
+recomandations : déjà un token csrf unique à l’utilisateur et par session, et eliminer les failles xss pour eviter qu’on puisse récupérer le token
+
+https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html 
+
+challenge 5 : Lab: CSRF where Referer validation depends on header being present
+
+![Screenshot 2026-04-19 at 16.18.14.png](attachment:707b13f3-5c33-4a26-a900-cd83a97f441c:Screenshot_2026-04-19_at_16.18.14.png)
+
+![Screenshot 2026-04-19 at 16.19.40.png](attachment:c8971e18-8556-4756-99b8-1f9891a6f730:Screenshot_2026-04-19_at_16.19.40.png)
+
+![Screenshot 2026-04-19 at 16.23.51.png](attachment:455823c0-60cd-478c-b8a5-4a0789762496:Screenshot_2026-04-19_at_16.23.51.png)
+
+![Screenshot 2026-04-19 at 16.26.56.png](attachment:0220439d-d018-49cd-bc03-25954da5768c:Screenshot_2026-04-19_at_16.26.56.png)
+
+![Screenshot 2026-04-19 at 16.27.59.png](attachment:422c7b1f-caa8-40d4-ac4c-d091b976a6a4:Screenshot_2026-04-19_at_16.27.59.png)
+
+- je regarde comment fonctionne le referer dans le header grace à la page de changement d’email
+- je l’ai supprimé et le comportement est le même donc la faille est là
+- je vais sur la page de l’exploit et je mets un payload avec “no-referrer” en value du referer (cf. image 4) pour que le referrer ne soit pas inclus par le navigateur, je change l’adresse
+- ```
+  <meta name="referrer" content="no-referrer">
+  <form method="POST" action="https://0aa2007c04c9beb5807a1cb000b20019.web-security-academy.net/my-account/change-email">
+  <input type="hidden" name="email" [value="bang@bang.com](mailto:value=%22bang@bang.com)" />
+  </form>
+  <script>
+  document.forms[0].submit();
+  </script>
+  ```
+- j’envoie au client et le lab est validé
+
+recommandation : eviter d’avoir uniquement le referrer comme sécurité comme c’est manipulable, utiliser des tokens csrf géré dans le back et unique par session, s’identifier à nouveau pour les actions sensibles/admins. nettoyer les entrés pour éviter les failles xss et vol de tokens
+
+source : https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html 
+
+https://owasp.org/www-community/attacks/csrf
